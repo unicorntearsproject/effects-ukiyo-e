@@ -1,6 +1,6 @@
 # effects-ukiyo-e — Unicorn Viz effect pack
 
-**Version 0.2.0**
+**Version 0.3.0**
 
 Neon/steampunk ukiyo-e: a woodblock print that composes itself while you watch.
 
@@ -45,14 +45,37 @@ rasterizer rather than a simulation.
 - **Floating World** — the sheet, the bokashi wash, drifting fans, kumogata
   cloud bands, Fuji, a torii, three wave plates with claw-foam, ink drips, the
   shower, blossom, clockwork cranes, and the printer's seal.
+- **Onden Watermill** — *Watermill at Onden* is in Thirty-Six Views of Mount
+  Fuji, the same series as the Great Wave, so the wheel belongs to this picture
+  as much as the sea does. Where Floating World is a landscape built from
+  plates, this is a **machine**: there is one shaft, and everything else hangs
+  off it. The wheel's angle drives the paddles, the water each bucket carries,
+  the pit gear meshing at the hub, and — the part that matters musically —
+  *when the splashes happen*. A bucket tips at the bottom of its travel and
+  throws its water into the stream; nothing schedules that on a timer, so the
+  rhythm you see is the wheel's own, and the wheel is locked to the tempo.
+
+  It is an **overshot** wheel, which is what makes the cycle legible: the chute
+  pours onto the buckets near the top, they carry the water down the near side,
+  they dump it at the bottom. The gearing is here on purpose — a mill drives
+  its machinery through a pit wheel and a pinion, so a turning gear is
+  millwright's vocabulary rather than borrowed steampunk. Hokusai's turtles are
+  on the bank, because he put them there.
 
 ## Tweakables
 
-`speed`, `zoom`, `reactivity`, `glitter`, plus `neon_gain` (how hot the neon
-runs) and `layer_churn` (how readily the director re-cuts the plates; 0 freezes
-the current picture).
+Both take `speed`, `zoom`, `reactivity`, `glitter` and `neon_gain` (how hot the
+neon runs). Floating World adds `layer_churn` (how readily the director re-cuts
+the plates; 0 freezes the current picture); Onden Watermill adds `flow_gain`
+(how hard the chute runs).
 
 ## Changelog
+
+- **0.3.0** — adds **Onden Watermill**. Built as a mechanism rather than a
+  scene: one shaft drives the paddles, the water in each bucket, the meshing
+  pit gear and the timing of every splash, and the shaft is locked to the
+  tempo, so a bucket tips on the beat instead of near it. Overshot, so the
+  fill/carry/throw cycle is visible twelve times a revolution.
 
 - **0.2.0** — the brass orrery is gone; fans took its place. Gears were generic
   steampunk shorthand rather than anything from this picture's own vocabulary,
