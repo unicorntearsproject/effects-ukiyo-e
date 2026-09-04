@@ -2,9 +2,9 @@
 
 A woodblock print is built from **plates**: one carved block per colour, each
 inked and pressed onto the same sheet in order.  This effect works the same
-way.  Every element -- the graded sky, the brass orrery, the cloud bands, Fuji,
-the torii, the three wave plates, the drips, the rain, the blossoms, the
-clockwork cranes, the seal -- is a plate with its own weight, and a director on
+way.  Every element -- the graded sky, the fans, the cloud bands, Fuji, the
+torii, the three wave plates, the drips, the rain, the blossoms, the clockwork
+cranes, the seal -- is a plate with its own weight, and a director on
 the CPU brings plates in and out over time.  So the picture is never finished:
 it composes itself while you watch, which is the part a static print cannot do.
 
@@ -29,8 +29,8 @@ carries the song-structure hint auto-vj and the mixer publish -- a phrase role
 of HOLD/RISE/PEAK/FALL/CLOSE -- and the printer works to it: a RISE inks plates
 one after another, a PEAK has the whole picture on the sheet, a FALL wipes them
 back, a CLOSE strips to the plates that carry the composition.  Tempo comes
-from the same place and drives the orrery, so the gears turn on the beat rather
-than near it.  None of it is required: with no app running -- tests, offscreen
+from the same place and turns the fans, so they revolve on the beat rather than
+near it.  None of it is required: with no app running -- tests, offscreen
 renders, any standalone tool -- the director falls back to its own timer and
 the effect behaves exactly as it does today.
 
@@ -39,7 +39,7 @@ the CPU and handed to the shader ready to draw, so the fragment program is a
 rasterizer rather than a simulation.
 
 Audio reactivity:
-  - bass    -> swell height, crest lift, gear speed, Fuji's core
+  - bass    -> swell height, crest lift, how far the folding fans open
   - mid     -> plate churn, cloud drift, sky gradient
   - treble  -> rain density, foam sparkle, blossom glow
   - beat    -> crane scatter, blossom burst, drip release, seal flash
@@ -60,13 +60,13 @@ import numpy as np
 from unicornviz.effects.base import AudioData, BaseEffect
 from unicornviz.vj_api import VJApi
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 TAU = 2.0 * math.pi
 _NPETAL = 16
 _NCRANE = 6
 _NDRIP = 10
-_NGEAR = 4
+_NFAN = 4
 
 _VERT = """
 #version 330
@@ -99,7 +99,7 @@ uniform float iSky;         // per-activation sky variant
 
 // Plate weights. The director fades these; a plate at 0 costs almost nothing
 // because every layer is gated on its own weight.
-uniform float iwGear;
+uniform float iwFan;
 uniform float iwCloud;
 uniform float iwFuji;
 uniform float iwTorii;
@@ -113,7 +113,7 @@ uniform float iwCrane;
 uniform vec4  iPetal[16];   // xy position, z rotation, w life
 uniform vec4  iCrane[6];    // xy position, z flap phase, w scale
 uniform vec4  iDrip[10];    // x, y top, z length, w life
-uniform vec4  iGear[4];     // xy centre, z radius, w angle
+uniform vec4  iFan[4];      // xy centre, z radius (sign = kind), w angle
 
 in  vec2 v_uv;
 out vec4 fragColor;
@@ -208,27 +208,57 @@ void main() {
          * (0.9 + iBass * 0.6) * gain;
     ink(col, sd - 0.152, 0.004, vec3(1.0, 0.85, 0.6), neonA, 0.35 * gain);
 
-    // ── plate 3: the orrery ────────────────────────────────────────────────
-    if (iwGear > 0.01) {
+    // ── plate 3: the fans ──────────────────────────────────────────────────
+    // Two kinds, both of them ukiyo-e's own: a sensu, the folding fan, which
+    // opens and closes on the low end, and an uchiwa, the rigid paddle fan
+    // that prints were literally made to be mounted on. A fan's radius
+    // carries its kind -- positive folds, negative does not.
+    if (iwFan > 0.01) {
         for (int i = 0; i < 4; i++) {
-            vec4 G = iGear[i];
-            vec2 q = p - G.xy;
+            vec4 F = iFan[i];
+            float R = abs(F.z);
+            vec2 q = rot(-F.w) * (p - F.xy);
             float r = length(q);
-            if (r > G.z * 1.35) continue;
-            float a = atan(q.y, q.x) + G.w;
-            // Teeth: the rim steps out on alternate angular cells.
-            float teeth = G.z * (1.0 + 0.085 * step(0.5, fract(a / TAU * 14.0)));
-            float rim = smoothstep(0.016, 0.0, abs(r - teeth));
-            float hub = smoothstep(0.013, 0.0, abs(r - G.z * 0.24));
-            float spoke = smoothstep(0.010, 0.0, abs(sin(a * 3.0)) * r)
-                        * step(r, G.z * 0.95);
-            // A faint plate behind the spokes so the wheel has a body.
-            float disc = smoothstep(0.004, 0.0, r - teeth) * 0.28;
-            float m = clamp(rim + hub + spoke + disc, 0.0, 1.0) * iwGear;
-            vec3 brass = mix(vec3(0.72, 0.50, 0.18), neonC, 0.12);
-            col = mix(col, brass * (0.65 + iMid * 0.45), m);
-            col += mix(vec3(1.0, 0.78, 0.35), neonC, 0.3) * m * 0.22 * gain
-                 * (0.35 + iBass * 0.6);
+            if (r > R * 1.30) continue;
+            float a = atan(q.y, q.x);
+            vec3 leaf = mix(vec3(0.95, 0.92, 0.82), neonC, 0.20);
+            vec3 rib = mix(vec3(0.30, 0.16, 0.10), neonA, 0.30);
+            float body, edge, ribs;
+            if (F.z > 0.0) {
+                // Sensu: the sector between the pivot and the leaf's arc. It
+                // breathes with the bass, which is the whole reason a fan is a
+                // better object here than a gear -- it can answer the music.
+                float open = 0.50 + 0.42 * (0.5 + 0.5 * sin(F.w * 0.8))
+                                  * (0.55 + iBass * 0.75);
+                float inR = R * 0.14;
+                body = step(abs(a), open) * step(inR, r) * step(r, R);
+                edge = max(abs(a) - open, max(inR - r, r - R));
+                ribs = step(0.62, fract((a + open) / (2.0 * open) * 9.0))
+                     * body;
+                // The guard sticks carry on past the leaf.
+                float guard = smoothstep(0.004, 0.0,
+                                         min(abs(abs(a) - open) * r, 1.0))
+                            * step(r, R * 1.22);
+                ribs = max(ribs, guard);
+            } else {
+                // Uchiwa: a round leaf on a handle, ribs fanning up into it.
+                body = step(r, R);
+                edge = r - R;
+                ribs = step(0.72, fract((a + PI) / TAU * 15.0)) * body
+                     * step(R * 0.18, r);
+                float handle = smoothstep(0.007, 0.0, abs(q.x))
+                             * step(q.y, -R * 0.55) * step(-R * 1.28, q.y);
+                ribs = max(ribs, handle);
+            }
+            float w = iwFan;
+            col = mix(col, leaf * (0.78 + iMid * 0.42), body * w * 0.98);
+            col = mix(col, rib, ribs * w * 0.82);
+            // Key block first, then the neon on top of it. Without the dark
+            // line the leaf washes straight into the sky behind it.
+            col = mix(col, vec3(0.06, 0.05, 0.13),
+                      smoothstep(0.0038, 0.0, abs(edge)) * w * 0.85);
+            col += neonC * exp(-abs(edge) * 130.0) * w * 0.60 * gain
+                 * (0.45 + iTreble * 0.7);
         }
     }
 
@@ -495,7 +525,7 @@ class FloatingWorld(BaseEffect):
 
     # Plates the director may ink. The sheet, the bokashi wash, the seal and
     # the border are always printed; these are the ones that come and go.
-    _PLATES = ('gear', 'cloud', 'fuji', 'torii', 'wave', 'drip',
+    _PLATES = ('fan', 'cloud', 'fuji', 'torii', 'wave', 'drip',
                'rain', 'petal', 'crane')
     # Plates that carry the picture: at least two of these stay inked, or the
     # sheet empties out and the effect has nothing on it.
@@ -547,19 +577,17 @@ class FloatingWorld(BaseEffect):
         self._petals = np.zeros((_NPETAL, 6), dtype=np.float64)   # x y vx vy rot life
         self._cranes = np.zeros((_NCRANE, 5), dtype=np.float64)   # x y flap scale vx
         self._drips = np.zeros((_NDRIP, 4), dtype=np.float64)     # x ytop len life
-        self._gears = np.zeros((_NGEAR, 4), dtype=np.float64)     # x y r ang
-        for i in range(_NGEAR):
-            self._gears[i] = (float(self.rng.uniform(-0.8, 0.8)),
-                              float(self.rng.uniform(0.05, 0.42)),
-                              float(self.rng.uniform(0.045, 0.11)),
-                              float(self.rng.uniform(0.0, TAU)))
+        # x, y, radius (negative for an uchiwa), angle.
+        self._fans = np.zeros((_NFAN, 4), dtype=np.float64)
+        for i in range(_NFAN):
+            self._spawn_fan(i, float(self.rng.uniform(-0.9, 0.9)))
         for i in range(_NCRANE):
             self._spawn_crane(i)
 
         self._tbl_petal = np.zeros((_NPETAL, 4), dtype='f4')
         self._tbl_crane = np.zeros((_NCRANE, 4), dtype='f4')
         self._tbl_drip = np.zeros((_NDRIP, 4), dtype='f4')
-        self._tbl_gear = np.zeros((_NGEAR, 4), dtype='f4')
+        self._tbl_fan = np.zeros((_NFAN, 4), dtype='f4')
 
     # ----------------------------------------------------------- the director
     def _ensure_anchors(self) -> None:
@@ -624,6 +652,18 @@ class FloatingWorld(BaseEffect):
         self._ensure_anchors()
 
     # ------------------------------------------------------------- the actors
+    def _spawn_fan(self, i: int, x: float | None = None) -> None:
+        """Place a fan, folding or rigid, drifting in on the wind."""
+        radius = float(self.rng.uniform(0.070, 0.135))
+        if self.rng.random() < 0.45:
+            radius = -radius                       # an uchiwa, not a sensu
+        self._fans[i] = (
+            x if x is not None else -self._wind_dir * float(self.rng.uniform(0.95, 1.25)),
+            float(self.rng.uniform(0.04, 0.42)),
+            radius,
+            float(self.rng.uniform(0.0, TAU)),
+        )
+
     def _spawn_crane(self, i: int) -> None:
         side = 1.0 if self.rng.random() < 0.5 else -1.0
         self._cranes[i] = (
@@ -703,12 +743,16 @@ class FloatingWorld(BaseEffect):
         for k in self._PLATES:
             self._w[k] += (self._target[k] - self._w[k]) * min(1.0, dt * 1.3)
 
-        # Gears turn with the low end; alternate ones counter-rotate, because a
-        # train of gears that all turned the same way would be a lie.
-        for i in range(_NGEAR):
-            sign = 1.0 if i % 2 == 0 else -1.0
-            self._gears[i, 3] += (step * sign * (0.5 + self._bass * 2.6)
-                                  * (self._bpm / 120.0))
+        # Fans turn slowly and ride the same wind as everything else, so they
+        # cross the sheet with the clouds and the blossom rather than hanging
+        # in place the way the gears they replaced did.
+        for i in range(_NFAN):
+            f = self._fans[i]
+            f[3] += step * (0.20 + self._bass * 0.85) * (self._bpm / 120.0)
+            f[0] += step * self._wind_dir * (0.045 + self._mid * 0.055)
+            f[1] += step * math.sin(f[3] * 0.5) * 0.012
+            if abs(f[0]) > 1.25:
+                self._spawn_fan(i)
 
         # Cranes ride the wind, and lift as they pass over the crest -- the
         # plates are meant to notice each other.
@@ -797,8 +841,8 @@ class FloatingWorld(BaseEffect):
         self._tbl_drip[:, 3] = np.clip(self._drips[:, 3], 0.0, 1.0)
         p['iDrip'].write(self._tbl_drip.tobytes())
 
-        self._tbl_gear[:] = self._gears
-        p['iGear'].write(self._tbl_gear.tobytes())
+        self._tbl_fan[:] = self._fans
+        p['iFan'].write(self._tbl_fan.tobytes())
 
         self._vao.render(moderngl.TRIANGLE_STRIP)
 

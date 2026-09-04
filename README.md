@@ -1,6 +1,6 @@
 # effects-ukiyo-e — Unicorn Viz effect pack
 
-**Version 0.1.0**
+**Version 0.2.0**
 
 Neon/steampunk ukiyo-e: a woodblock print that composes itself while you watch.
 
@@ -42,7 +42,7 @@ rasterizer rather than a simulation.
 
 ## Effects
 
-- **Floating World** — the sheet, the bokashi wash, a brass orrery, kumogata
+- **Floating World** — the sheet, the bokashi wash, drifting fans, kumogata
   cloud bands, Fuji, a torii, three wave plates with claw-foam, ink drips, the
   shower, blossom, clockwork cranes, and the printer's seal.
 
@@ -53,5 +53,19 @@ runs) and `layer_churn` (how readily the director re-cuts the plates; 0 freezes
 the current picture).
 
 ## Changelog
+
+- **0.2.0** — the brass orrery is gone; fans took its place. Gears were generic
+  steampunk shorthand rather than anything from this picture's own vocabulary,
+  and they read as borrowed. Fans belong here twice over: uchiwa-e were a whole
+  print *format*, made to be mounted on rigid paddle fans, and a folding sensu
+  can do something a gear cannot — it opens and closes, so the low end now
+  works the fans open instead of merely spinning them. Both kinds are drawn:
+  a sensu as the sector between pivot and leaf with ribs and guard sticks, an
+  uchiwa as a round leaf on a handle. They ride the shared wind like everything
+  else, so they cross the sheet with the clouds and the blossom rather than
+  hanging in place the way the gears did.
+
+  (Hokusai's *Watermill at Onden* sits in the same series as the Great Wave, so
+  a water wheel is equally canon here and is still on the table.)
 
 - **0.1.0** — initial release: Floating World.
