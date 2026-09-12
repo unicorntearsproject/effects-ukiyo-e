@@ -1,6 +1,6 @@
 # effects-ukiyo-e — Unicorn Viz effect pack
 
-**Version 0.3.0**
+**Version 0.4.0**
 
 Neon/steampunk ukiyo-e: a woodblock print that composes itself while you watch.
 
@@ -70,6 +70,32 @@ the plates; 0 freezes the current picture); Onden Watermill adds `flow_gain`
 (how hard the chute runs).
 
 ## Changelog
+
+- **0.4.0** — Two more kinds of picture: an instrument, and a procession.
+
+  *Raijin's Drums.* The thunder god's ring of taiko, treated as the percussion
+  instrument the iconography already is. Nothing fires on a timer: a beat
+  chooses the next drum and throws the arm at it, and the strike happens when
+  the arm arrives — so the swing is sized from the tempo and lands *on* the
+  beat because it was thrown a beat early. Everything after is one chain:
+  arrival → head ripple → a bolt leaving that drum → the cloud lit from
+  inside by it → the rain and the god lit by that same flash. Sizing the
+  swing from a guessed BPM instead of the observed one meant every beat
+  re-threw the arm before it could land: measured at three tempos, 220 beats
+  and *zero* strikes, with the entire chain dead behind it. It now takes the
+  interval from the beats actually arriving, and a beat that finds a swing
+  still in flight lands it rather than restarting it — one strike per beat at
+  every tempo tested.
+
+  *Night Parade.* Hyakki Yagyo as a procession, where everything hangs off how
+  far the line has walked — the place in the line gives each yokai its step,
+  the step shakes the pole, the pole swings the lantern on a real damped
+  pendulum, and the lantern is a *light*. The lanterns are the only light
+  source, so the street is dark where the line has not reached, and the
+  shadows are cast rather than drawn: a wall pixel's occluder is found by
+  running the ray back from the lamp and testing that point against the same
+  silhouette the yokai is drawn from, so a shadow leans when its own lantern
+  swings and can never disagree with the thing casting it.
 
 - **0.3.0** — adds **Onden Watermill**. Built as a mechanism rather than a
   scene: one shaft drives the paddles, the water in each bucket, the meshing

@@ -60,7 +60,7 @@ import numpy as np
 from unicornviz.effects.base import AudioData, BaseEffect
 from unicornviz.vj_api import VJApi
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 TAU = 2.0 * math.pi
 _NPETAL = 16
